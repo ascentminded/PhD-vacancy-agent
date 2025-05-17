@@ -1,0 +1,268 @@
+{
+  "name": "PhD vacancy collector workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{$json[\"prompt\"]}}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [1620, 20],
+      "id": "0437ca82-f3d3-4aa8-bac4-e06fb3333553",
+      "name": "Filter for keywords/ fitting jobs"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [80, 20],
+      "id": "3fd31c98-e7b4-45a8-9615-354749afd9d2",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.academictransfer.com/vacancies/?boost_spotlights=true&function_types=9&function_types=22&limit=10&offset=0&ordering=-start_date",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer <REDACTED_API_KEY>"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Origin",
+              "value": "https://www.academictransfer.com"
+            },
+            {
+              "name": "Referer",
+              "value": "https://www.academictransfer.com/"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; custom-agent)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, -80],
+      "id": "3b9fa9ef-fd71-496a-a463-4d28ce13edae",
+      "name": "Get count"
+    },
+    {
+      "parameters": {
+        "jsCode": "const count = $json[\"count\"];\nconst limit = 10;\nconst offsets = [];\nfor (let i = 0; i < count; i += limit) offsets.push({ offset: i });\nreturn offsets.map(x => ({ json: x }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, -80],
+      "id": "81034c6e-50fe-488a-8a2e-a853faf75585",
+      "name": "List-pages"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.academictransfer.com/vacancies/?limit=10&offset={{ $json[\"offset\"] }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer <REDACTED_API_KEY>"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Origin",
+              "value": "https://www.academictransfer.com"
+            },
+            {
+              "name": "Referer",
+              "value": "https://www.academictransfer.com/"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; custom-agent)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [740, -80],
+      "id": "a5be6073-835b-468c-9b10-7d8cd4d66529",
+      "name": "url-Crawler"
+    },
+    {
+      "parameters": {
+        "jsCode": "let allJobs = [];\nfor (const item of items) {\n  const results = item.json.results || [];\n  const mapped = results\n    .filter(job => job.translations?.[0]?.language_code === 'en')\n    .map(job => {\n      const details = job.translations?.[0] || {};\n      let rawDescription = details.description || '';\n      let description = rawDescription.replace(/<[^>]*>/g, '').replace(/\\s+/g, ' ').trim();\n      let firstSentence = description.split('. ')[0];\n      if (!firstSentence.endsWith('.')) firstSentence += '.';\n      return {\n        title: details.title || '',\n        url: job.short_url || '',\n        deadline: job.end_date || '',\n        application_status: 'FALSE',\n        max_salary: job.max_salary || '',\n        requirements: details.requirements || '',\n        short_description: firstSentence,\n        description: description,\n        language: details.language_code || '',\n        additional_info: details.additional_info || '',\n        contract_terms: details.contract_terms || ''\n      };\n    });\n  allJobs.push(...mapped);\n}\nreturn allJobs.map(entry => ({ json: entry }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, -80],
+      "id": "0b39dccb-ec1e-4402-ba07-d7452c1873ce",
+      "name": "Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [1708, 240],
+      "id": "0525f188-b86f-4de8-b1ed-4895b20ebe75",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "<REDACTED_OPENAI_API_CREDENTIAL_ID>",
+          "name": "n8n OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const interests = \"cognition, psychology, AI, deep learning, reinforcement learning\";\nconst promptItems = items.map(item => `- Title: ${item.json.title}\\n  Description: ${item.json.short_description}`).join('\\n\\n');\nreturn [{ json: { prompt: `Based on my interests (${interests}), which of the following jobs are relevant? Just return a list of 20+ matching job titles:\\n\\n${promptItems} without any formatting` } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position":
+
+
+
+
+
+ChatGPT said:
+[1460, 240],
+"id": "4172ca46-82e4-4ae1-9a7e-43db9f1dfe2e",
+"name": "Generate prompt"
+},
+{
+"parameters": {
+"authentication": "oAuth2",
+"sheetId": "<REDACTED_SHEET_ID>",
+"range": "Jobs!A2:Z",
+"options": {
+"valueInputMode": "RAW",
+"dataProperty": "jobs"
+},
+"data": "={{items.map(item => [\n item.json.title,\n item.json.url,\n item.json.deadline,\n item.json.application_status,\n item.json.max_salary,\n item.json.short_description,\n item.json.description\n])}}"
+},
+"type": "n8n-nodes-base.googleSheets",
+"typeVersion": 1,
+"position": [1900, 300],
+"id": "b3f9f17e-3df1-417f-94ae-ace2f160f772",
+"name": "Write to Google Sheets",
+"credentials": {
+"googleSheetsOAuth2Api": {
+"id": "<REDACTED_GOOGLE_SHEETS_CREDENTIAL_ID>",
+"name": "Google Sheets API"
+}
+}
+}
+],
+"connections": {
+"When clicking ‘Test workflow’": {
+"main": [
+[
+{
+"node": "Get count",
+"type": "main",
+"index": 0
+}
+]
+]
+},
+"Get count": {
+"main": [
+[
+{
+"node": "List-pages",
+"type": "main",
+"index": 0
+}
+]
+]
+},
+"List-pages": {
+"main": [
+[
+{
+"node": "url-Crawler",
+"type": "main",
+"index": 0
+}
+]
+]
+},
+"url-Crawler": {
+"main": [
+[
+{
+"node": "Parser",
+"type": "main",
+"index": 0
+}
+]
+]
+},
+"Parser": {
+"main": [
+[
+{
+"node": "Generate prompt",
+"type": "main",
+"index": 0
+}
+]
+]
+},
+"Generate prompt": {
+"main": [
+[
+{
+"node": "Filter for keywords/ fitting jobs",
+"type": "main",
+"index": 0
+}
+]
+]
+},
+"Filter for keywords/ fitting jobs": {
+"main": [
+[
+{
+"node": "OpenAI Chat Model",
+"type": "main",
+"index": 0
+}
+]
+]
+},
+"OpenAI Chat Model": {
+"main": [
+[
+{
+"node": "Write to Google Sheets",
+"type": "main",
+"index": 0
+}
+]
+]
+}
+}
+}
