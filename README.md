@@ -55,4 +55,6 @@ This helps GPT shortlist only the most relevant job titles for you.
 ---
 - As with all n8n workflows, this can be expanded on, with Cron scheduling, email notifications, more complex AI calls, and more -- for instance, I've set my Google sheet to notify me whenever there's an update, but n8n could send an email summarising the new updates too.
 - While n8n makes API integration a lot easier, this can be done using pure python code as well (check out [my other work](https://github.com/ascentminded/llama-agent) if you're interested in a primer).
-- 
+- Have fun, and good luck in your search!
+
+~ NB (Ascentminded)
