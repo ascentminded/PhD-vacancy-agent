@@ -1,4 +1,6 @@
 # PhD-vacancy-agent (n8n Workflow)
+---
+(With additional LLaMa options - filter_functions and filter_run, see below)
 
 ## Why I Built This
 
@@ -13,7 +15,7 @@ Finding relevant academic jobs can be time-consuming. This workflow automates th
 
 ## How to Use
 
-1. **Import the Workflow**
+1. **Import the Workflow (PhD-vacancy-workflow.json)**
 
    * Open your n8n instance
    * Click **Import Workflow**
@@ -50,11 +52,17 @@ This helps GPT shortlist only the most relevant job titles for you.
    * Share your target Google Sheet with the service account email (e.g. `my-service-account@project-id.iam.gserviceaccount.com`)
    * In n8n, use the **Google Sheets API (Service Account)** credentials
    * Fill in the correct `sheetId` and sheet name/range in the node
+  
+## LLaMa integration
+As an Ollama enthusiast, I also went ahead and tried filtering with LLaMa 3.2. The prompt engineering needs some work, but after the initial step of collecting all vacancies in one spreadsheet, the python code provided (filter_functions and filter_run), along with a file called SHEET_AUTH.json (containing your google sheet credentials) will filter the jobs and provide an HTML file with selected jobs. I am currently working on counteracting LLaMa's tendency to get 'overwhelmed' by the amount of data in a spreadsheet by chunking it and engineering prompts better, so stay tuned.
 
 ## Final note:
 ---
 - As with all n8n workflows, this can be expanded on, with Cron scheduling, email notifications, more complex AI calls, and more -- for instance, I've set my Google sheet to notify me whenever there's an update, but n8n could send an email summarising the new updates too.
 - While n8n makes API integration a lot easier, this can be done using pure python code as well (check out [my other work](https://github.com/ascentminded/llama-agent) if you're interested in a primer).
+- If you don't want to pay for GPT API access, you can use Ollama or Gemini (with Gemini being very similar to the GPT api usage).
 - Have fun, and good luck in your search!
 
 ~ NB (Ascentminded)
+
+
