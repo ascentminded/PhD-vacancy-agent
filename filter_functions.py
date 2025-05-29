@@ -30,8 +30,8 @@ def query_llama(system_prompt: str, user_prompt: str, model: str = 'llama3.2') -
     response = ollama.chat(model=model, messages=messages)
     print("Responded.")
     return response['message']['content']
+# I couldn't resist the Llama pun, I'm sorry :D
 
-# --------------------------
 #Formatting : The following format applies for the PhD vacancy site that I used. Based on how you have saved your data in the google sheet, the headings may differ
 # --------------------------
 
@@ -47,7 +47,7 @@ def format_jobs(data: pd.DataFrame) -> str:
 
 #The following prompt is the user prompt, and it can be fine tuned.
 def create_user_prompt(jobs_chunk: pd.DataFrame) -> str:
-    return f"""Check the following list of PhD/postdoc positions and return **only those** relevant to my experience in AI, cognition, psychology, deep learning, and brain science. Exclude ecology or physical science unless they mention AI, cognition, or neuroscience directly.
+    return f"""Check the following list of PhD/postdoc positions and return **only those** relevant to my experience in AI, deep learning, and science. Exclude physical science unless they mention AI directly.
 
 Here are the jobs:
 
@@ -58,19 +58,13 @@ Here are the jobs:
 # System Prompt
 # --------------------------
 
-system_prompt = """You are helping a cognitive scientist and AI researcher identify relevant PhD and postdoc positions from a large list.
+system_prompt = """You are helping a computational scientist and AI researcher identify relevant PhD and postdoc positions from a large list.
 
 The user has expertise in:
-- Cognitive science
+- AI
 - Deep learning and modeling
-- Neuroimaging
-- Decision making
-- Attention
-- Psychology
-- Predictive processing
-- Human-computer interaction
-
-Return only those positions clearly or tangentially related to these areas. Do NOT include anything in ecology, plant biology, physics, material science, or unrelated fields unless there’s a brain/AI/cognition aspect.
+- ...
+Return only those positions clearly or tangentially related to these areas.
 
 Respond only with a list of matching job titles and URLs. Do not include summaries or reasoning.
 """
