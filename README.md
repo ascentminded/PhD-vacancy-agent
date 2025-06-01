@@ -1,4 +1,4 @@
-# PhD-vacancy-agent (n8n Workflow)
+# PhD-vacancy-agent (n8n Workflow + LLaMa alternative)
 ---
 (With additional LLaMa options - filter_functions and filter_run, see below)
 
